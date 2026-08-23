@@ -1,5 +1,10 @@
+"use client";
+
+import { useState } from "react";
 import type { LinkFolder, LinkItem } from "./data";
 import LinkCard from "./LinkCard";
+import DeleteLinkModal from "./DeleteLinkModal";
+import { useLinks } from "./LinkContext";
 
 type LinkGridProps = {
   links: LinkItem[];
@@ -7,6 +12,15 @@ type LinkGridProps = {
 };
 
 export default function LinkGrid({ links, folders }: LinkGridProps) {
+  const { removeLink } = useLinks();
+  const [linkToDelete, setLinkToDelete] = useState<LinkItem | null>(null);
+
+  const handleConfirmDelete = () => {
+    if (!linkToDelete) return;
+    removeLink(linkToDelete.id);
+    setLinkToDelete(null);
+  };
+
   if (links.length === 0) {
     return (
       <div className="flex flex-1 flex-col items-center justify-center gap-2 py-24 text-center text-zinc-400 dark:text-zinc-500">
@@ -23,8 +37,15 @@ export default function LinkGrid({ links, folders }: LinkGridProps) {
           key={link.id}
           link={link}
           folderName={folders.find((folder) => folder.id === link.folderId)?.name}
+          onDelete={() => setLinkToDelete(link)}
         />
       ))}
+
+      <DeleteLinkModal
+        link={linkToDelete}
+        onCancel={() => setLinkToDelete(null)}
+        onConfirm={handleConfirmDelete}
+      />
     </div>
   );
 }

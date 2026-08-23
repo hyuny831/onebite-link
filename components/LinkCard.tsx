@@ -11,9 +11,10 @@ const ACCENT_COLORS = [
 type LinkCardProps = {
   link: LinkItem;
   folderName?: string;
+  onDelete?: () => void;
 };
 
-export default function LinkCard({ link, folderName }: LinkCardProps) {
+export default function LinkCard({ link, folderName, onDelete }: LinkCardProps) {
   const hostname = getHostname(link.url);
   const accent = ACCENT_COLORS[hashString(link.id) % ACCENT_COLORS.length];
 
@@ -22,8 +23,23 @@ export default function LinkCard({ link, folderName }: LinkCardProps) {
       href={link.url}
       target="_blank"
       rel="noopener noreferrer"
-      className="group flex flex-col gap-3 overflow-hidden rounded-xl border border-zinc-200 bg-white p-4 transition-shadow hover:shadow-md dark:border-zinc-800 dark:bg-zinc-950"
+      className="group relative flex flex-col gap-3 overflow-hidden rounded-xl border border-zinc-200 bg-white p-4 transition-shadow hover:shadow-md dark:border-zinc-800 dark:bg-zinc-950"
     >
+      {onDelete && (
+        <button
+          type="button"
+          onClick={(event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            onDelete();
+          }}
+          aria-label={`${link.title} 링크 삭제`}
+          className="absolute top-3 right-3 z-10 rounded-md bg-white/90 p-1.5 text-zinc-400 opacity-0 shadow-sm transition-opacity group-hover:opacity-100 hover:bg-zinc-100 hover:text-red-500 dark:bg-zinc-900/90 dark:text-zinc-500 dark:hover:bg-zinc-800 dark:hover:text-red-400"
+        >
+          <TrashIcon className="h-4 w-4" />
+        </button>
+      )}
+
       {link.thumbnail && (
         // eslint-disable-next-line @next/next/no-img-element
         <img
@@ -84,4 +100,25 @@ function hashString(value: string) {
     hash |= 0;
   }
   return Math.abs(hash);
+}
+
+function TrashIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+      aria-hidden="true"
+    >
+      <path d="M3 6h18" />
+      <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+      <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+      <path d="M10 11v6" />
+      <path d="M14 11v6" />
+    </svg>
+  );
 }

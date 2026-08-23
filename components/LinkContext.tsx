@@ -14,6 +14,7 @@ type NewLinkInput = {
 type LinkContextValue = {
   links: LinkItem[];
   addLink: (input: NewLinkInput) => LinkItem;
+  removeLink: (id: string) => void;
 };
 
 const LinkContext = createContext<LinkContextValue | null>(null);
@@ -39,7 +40,11 @@ export function LinkProvider({ children }: LinkProviderProps) {
     return newLink;
   };
 
-  const value = useMemo(() => ({ links, addLink }), [links]);
+  const removeLink = (id: string) => {
+    setLinks((prev) => prev.filter((link) => link.id !== id));
+  };
+
+  const value = useMemo(() => ({ links, addLink, removeLink }), [links]);
 
   return <LinkContext.Provider value={value}>{children}</LinkContext.Provider>;
 }
