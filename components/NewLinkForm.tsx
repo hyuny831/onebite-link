@@ -1,15 +1,49 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
-import { folders } from "./data";
+import { useRouter } from "next/navigation";
+import { useFolders } from "./FolderContext";
+import { useLinks } from "./LinkContext";
 
 export default function NewLinkForm() {
+  const router = useRouter();
+  const { folders } = useFolders();
+  const { addLink } = useLinks();
+
   const [url, setUrl] = useState("");
   const [folderId, setFolderId] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    // TODO: 실제 저장 로직 연동
+    if (isSubmitting) return;
+
+    setError(null);
+    setIsSubmitting(true);
+
+    try {
+      const response = await fetch(`/api/og?url=${encodeURIComponent(url)}`);
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data?.error ?? "오픈그래프 정보를 가져오지 못했어요.");
+      }
+
+      addLink({
+        url: data.url || url,
+        title: data.title || url,
+        description: data.description || "",
+        thumbnail: data.thumbnail || undefined,
+        folderId,
+      });
+
+      router.push(folderId ? `/folder/${folderId}` : "/");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "링크를 저장하지 못했어요.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -57,11 +91,14 @@ export default function NewLinkForm() {
           </select>
         </div>
 
+        {error && <p className="text-sm text-red-500 dark:text-red-400">{error}</p>}
+
         <button
           type="submit"
-          className="mt-2 flex items-center justify-center rounded-full bg-zinc-900 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-zinc-700 dark:bg-white dark:text-black dark:hover:bg-zinc-200"
+          disabled={isSubmitting}
+          className="mt-2 flex items-center justify-center rounded-full bg-zinc-900 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-zinc-700 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-white dark:text-black dark:hover:bg-zinc-200"
         >
-          저장
+          {isSubmitting ? "가져오는 중..." : "확인"}
         </button>
       </form>
     </div>

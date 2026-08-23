@@ -1,13 +1,19 @@
+"use client";
+
 import { notFound } from "next/navigation";
 import AppShell from "./AppShell";
 import LinkGrid from "./LinkGrid";
-import { folders, links } from "./data";
+import { useFolders } from "./FolderContext";
+import { useLinks } from "./LinkContext";
 
 type FolderViewProps = {
   folderId: string;
 };
 
 export default function FolderView({ folderId }: FolderViewProps) {
+  const { folders } = useFolders();
+  const { links } = useLinks();
+
   const folder = folders.find((item) => item.id === folderId);
 
   if (!folder) {

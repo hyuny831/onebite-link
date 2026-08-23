@@ -22,8 +22,20 @@ export default function LinkCard({ link, folderName }: LinkCardProps) {
       href={link.url}
       target="_blank"
       rel="noopener noreferrer"
-      className="group flex flex-col gap-3 rounded-xl border border-zinc-200 bg-white p-4 transition-shadow hover:shadow-md dark:border-zinc-800 dark:bg-zinc-950"
+      className="group flex flex-col gap-3 overflow-hidden rounded-xl border border-zinc-200 bg-white p-4 transition-shadow hover:shadow-md dark:border-zinc-800 dark:bg-zinc-950"
     >
+      {link.thumbnail && (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={link.thumbnail}
+          alt=""
+          className="-mx-4 -mt-4 h-32 w-[calc(100%+2rem)] max-w-none object-cover"
+          onError={(event) => {
+            event.currentTarget.style.display = "none";
+          }}
+        />
+      )}
+
       <div className="flex items-start justify-between gap-2">
         <div className="flex min-w-0 items-center gap-3">
           <span

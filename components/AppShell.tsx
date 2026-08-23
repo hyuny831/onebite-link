@@ -4,7 +4,7 @@ import type { ReactNode } from "react";
 import Header from "./Header";
 import Sidebar from "./Sidebar";
 import { useFolders } from "./FolderContext";
-import { links } from "./data";
+import { useLinks } from "./LinkContext";
 
 type AppShellProps = {
   children: ReactNode;
@@ -12,6 +12,7 @@ type AppShellProps = {
 
 export default function AppShell({ children }: AppShellProps) {
   const { folders } = useFolders();
+  const { links } = useLinks();
 
   const linkCountByFolder = links.reduce<Record<string, number>>((acc, link) => {
     acc[link.folderId] = (acc[link.folderId] ?? 0) + 1;
