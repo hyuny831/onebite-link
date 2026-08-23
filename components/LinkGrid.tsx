@@ -4,6 +4,7 @@ import { useState } from "react";
 import type { LinkFolder, LinkItem } from "./data";
 import LinkCard from "./LinkCard";
 import DeleteLinkModal from "./DeleteLinkModal";
+import EditLinkModal from "./EditLinkModal";
 import { useLinks } from "./LinkContext";
 
 type LinkGridProps = {
@@ -14,6 +15,7 @@ type LinkGridProps = {
 export default function LinkGrid({ links, folders }: LinkGridProps) {
   const { removeLink } = useLinks();
   const [linkToDelete, setLinkToDelete] = useState<LinkItem | null>(null);
+  const [linkToEdit, setLinkToEdit] = useState<LinkItem | null>(null);
 
   const handleConfirmDelete = () => {
     if (!linkToDelete) return;
@@ -37,9 +39,12 @@ export default function LinkGrid({ links, folders }: LinkGridProps) {
           key={link.id}
           link={link}
           folderName={folders.find((folder) => folder.id === link.folderId)?.name}
+          onEdit={() => setLinkToEdit(link)}
           onDelete={() => setLinkToDelete(link)}
         />
       ))}
+
+      <EditLinkModal link={linkToEdit} onClose={() => setLinkToEdit(null)} />
 
       <DeleteLinkModal
         link={linkToDelete}

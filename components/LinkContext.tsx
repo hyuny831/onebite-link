@@ -11,10 +11,17 @@ type NewLinkInput = {
   folderId: string;
 };
 
+type LinkUpdateInput = {
+  folderId: string;
+  title: string;
+  description: string;
+};
+
 type LinkContextValue = {
   links: LinkItem[];
   addLink: (input: NewLinkInput) => LinkItem;
   removeLink: (id: string) => void;
+  updateLink: (id: string, input: LinkUpdateInput) => void;
 };
 
 const LinkContext = createContext<LinkContextValue | null>(null);
@@ -44,7 +51,22 @@ export function LinkProvider({ children }: LinkProviderProps) {
     setLinks((prev) => prev.filter((link) => link.id !== id));
   };
 
-  const value = useMemo(() => ({ links, addLink, removeLink }), [links]);
+  const updateLink = (id: string, input: LinkUpdateInput) => {
+    setLinks((prev) =>
+      prev.map((link) =>
+        link.id === id
+          ? {
+              ...link,
+              folderId: input.folderId,
+              title: input.title,
+              description: input.description,
+            }
+          : link,
+      ),
+    );
+  };
+
+  const value = useMemo(() => ({ links, addLink, removeLink, updateLink }), [links]);
 
   return <LinkContext.Provider value={value}>{children}</LinkContext.Provider>;
 }

@@ -11,12 +11,14 @@ const ACCENT_COLORS = [
 type LinkCardProps = {
   link: LinkItem;
   folderName?: string;
+  onEdit?: () => void;
   onDelete?: () => void;
 };
 
-export default function LinkCard({ link, folderName, onDelete }: LinkCardProps) {
+export default function LinkCard({ link, folderName, onEdit, onDelete }: LinkCardProps) {
   const hostname = getHostname(link.url);
   const accent = ACCENT_COLORS[hashString(link.id) % ACCENT_COLORS.length];
+  const hasActions = Boolean(onEdit || onDelete);
 
   return (
     <a
@@ -25,19 +27,38 @@ export default function LinkCard({ link, folderName, onDelete }: LinkCardProps) 
       rel="noopener noreferrer"
       className="group relative flex flex-col gap-3 overflow-hidden rounded-xl border border-zinc-200 bg-white p-4 transition-shadow hover:shadow-md dark:border-zinc-800 dark:bg-zinc-950"
     >
-      {onDelete && (
-        <button
-          type="button"
-          onClick={(event) => {
-            event.preventDefault();
-            event.stopPropagation();
-            onDelete();
-          }}
-          aria-label={`${link.title} 링크 삭제`}
-          className="absolute top-3 right-3 z-10 rounded-md bg-white/90 p-1.5 text-zinc-400 opacity-0 shadow-sm transition-opacity group-hover:opacity-100 hover:bg-zinc-100 hover:text-red-500 dark:bg-zinc-900/90 dark:text-zinc-500 dark:hover:bg-zinc-800 dark:hover:text-red-400"
-        >
-          <TrashIcon className="h-4 w-4" />
-        </button>
+      {hasActions && (
+        <div className="absolute top-3 right-3 z-10 flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+          {onEdit && (
+            <button
+              type="button"
+              onClick={(event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                onEdit();
+              }}
+              aria-label={`${link.title} 링크 수정`}
+              className="rounded-md bg-white/90 p-1.5 text-zinc-400 shadow-sm hover:bg-zinc-100 hover:text-zinc-900 dark:bg-zinc-900/90 dark:text-zinc-500 dark:hover:bg-zinc-800 dark:hover:text-zinc-50"
+            >
+              <PencilIcon className="h-4 w-4" />
+            </button>
+          )}
+
+          {onDelete && (
+            <button
+              type="button"
+              onClick={(event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                onDelete();
+              }}
+              aria-label={`${link.title} 링크 삭제`}
+              className="rounded-md bg-white/90 p-1.5 text-zinc-400 shadow-sm hover:bg-zinc-100 hover:text-red-500 dark:bg-zinc-900/90 dark:text-zinc-500 dark:hover:bg-zinc-800 dark:hover:text-red-400"
+            >
+              <TrashIcon className="h-4 w-4" />
+            </button>
+          )}
+        </div>
       )}
 
       {link.thumbnail && (
@@ -100,6 +121,24 @@ function hashString(value: string) {
     hash |= 0;
   }
   return Math.abs(hash);
+}
+
+function PencilIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+      aria-hidden="true"
+    >
+      <path d="M12 20h9" />
+      <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z" />
+    </svg>
+  );
 }
 
 function TrashIcon({ className }: { className?: string }) {
