@@ -14,7 +14,7 @@ export default function AppShell({ children }: AppShellProps) {
   }, {});
 
   return (
-    <div className="flex min-h-screen flex-col bg-zinc-50 dark:bg-black">
+    <div className="flex min-h-screen flex-col bg-[var(--background)]">
       <Header />
       <div className="flex flex-1">
         <Sidebar
