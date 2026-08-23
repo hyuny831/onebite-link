@@ -6,6 +6,7 @@ import { folders as initialFolders, type LinkFolder } from "./data";
 type FolderContextValue = {
   folders: LinkFolder[];
   addFolder: (name: string) => LinkFolder;
+  removeFolder: (id: string) => void;
 };
 
 const FolderContext = createContext<FolderContextValue | null>(null);
@@ -26,7 +27,11 @@ export function FolderProvider({ children }: FolderProviderProps) {
     return newFolder;
   };
 
-  const value = useMemo(() => ({ folders, addFolder }), [folders]);
+  const removeFolder = (id: string) => {
+    setFolders((prev) => prev.filter((folder) => folder.id !== id));
+  };
+
+  const value = useMemo(() => ({ folders, addFolder, removeFolder }), [folders]);
 
   return <FolderContext.Provider value={value}>{children}</FolderContext.Provider>;
 }
