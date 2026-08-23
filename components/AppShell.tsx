@@ -1,13 +1,18 @@
+"use client";
+
 import type { ReactNode } from "react";
 import Header from "./Header";
 import Sidebar from "./Sidebar";
-import { folders, links } from "./data";
+import { useFolders } from "./FolderContext";
+import { links } from "./data";
 
 type AppShellProps = {
   children: ReactNode;
 };
 
 export default function AppShell({ children }: AppShellProps) {
+  const { folders } = useFolders();
+
   const linkCountByFolder = links.reduce<Record<string, number>>((acc, link) => {
     acc[link.folderId] = (acc[link.folderId] ?? 0) + 1;
     return acc;
