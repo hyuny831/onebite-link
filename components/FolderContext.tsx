@@ -18,7 +18,7 @@ type FolderContextValue = {
   isAddingFolder: boolean;
   addFolder: (name: string) => Promise<LinkFolder | null>;
   removeFolder: (id: string) => void;
-  renameFolder: (id: string, name: string) => void;
+  renameFolder: (id: string, name: string) => Promise<boolean>;
 };
 
 const FolderContext = createContext<FolderContextValue | null>(null);
@@ -80,15 +80,24 @@ export function FolderProvider({ children }: FolderProviderProps) {
     setFolders((prev) => prev.filter((folder) => folder.id !== id));
   };
 
-  const renameFolder = (id: string, name: string) => {
+  const renameFolder = useCallback(async (id: string, name: string) => {
+    const supabase = createClient();
+    const { error } = await supabase.from("folders").update({ name }).eq("id", id);
+
+    if (error) {
+      console.error("폴더 이름을 수정하지 못했습니다:", error.message);
+      return false;
+    }
+
     setFolders((prev) =>
       prev.map((folder) => (folder.id === id ? { ...folder, name } : folder)),
     );
-  };
+    return true;
+  }, []);
 
   const value = useMemo(
     () => ({ folders, isAddingFolder, addFolder, removeFolder, renameFolder }),
-    [folders, isAddingFolder, addFolder],
+    [folders, isAddingFolder, addFolder, renameFolder],
   );
 
   return <FolderContext.Provider value={value}>{children}</FolderContext.Provider>;

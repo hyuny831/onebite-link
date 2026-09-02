@@ -39,13 +39,15 @@ function EditFolderModalContent({ folder, onClose }: EditFolderModalContentProps
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, [onClose]);
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
     const trimmed = name.trim();
     if (!trimmed) return;
 
-    renameFolder(folder.id, trimmed);
+    const success = await renameFolder(folder.id, trimmed);
+    if (!success) return;
+
     onClose();
   };
 
