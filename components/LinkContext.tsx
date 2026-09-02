@@ -31,7 +31,7 @@ type LinkContextValue = {
   links: LinkItem[];
   isAddingLink: boolean;
   addLink: (input: NewLinkInput) => Promise<LinkItem | null>;
-  removeLink: (id: string) => void;
+  removeLink: (id: string) => Promise<boolean>;
   updateLink: (id: string, input: LinkUpdateInput) => Promise<boolean>;
 };
 
@@ -118,9 +118,18 @@ export function LinkProvider({ children }: LinkProviderProps) {
     }
   }, []);
 
-  const removeLink = (id: string) => {
+  const removeLink = useCallback(async (id: string) => {
+    const supabase = createClient();
+    const { error } = await supabase.from("links").delete().eq("id", id);
+
+    if (error) {
+      console.error("링크를 삭제하지 못했습니다:", error.message);
+      return false;
+    }
+
     setLinks((prev) => prev.filter((link) => link.id !== id));
-  };
+    return true;
+  }, []);
 
   const updateLink = useCallback(async (id: string, input: LinkUpdateInput) => {
     const supabase = createClient();
@@ -155,7 +164,7 @@ export function LinkProvider({ children }: LinkProviderProps) {
 
   const value = useMemo(
     () => ({ links, isAddingLink, addLink, removeLink, updateLink }),
-    [links, isAddingLink, addLink, updateLink],
+    [links, isAddingLink, addLink, removeLink, updateLink],
   );
 
   return <LinkContext.Provider value={value}>{children}</LinkContext.Provider>;
