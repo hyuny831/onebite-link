@@ -30,13 +30,17 @@ export default function NewLinkForm() {
         throw new Error(data?.error ?? "오픈그래프 정보를 가져오지 못했어요.");
       }
 
-      addLink({
+      const newLink = await addLink({
         url: data.url || url,
         title: data.title || url,
         description: data.description || "",
         thumbnail: data.thumbnail || undefined,
         folderId,
       });
+
+      if (!newLink) {
+        throw new Error("링크를 저장하지 못했어요.");
+      }
 
       router.push(folderId ? `/folder/${folderId}` : "/");
     } catch (err) {
