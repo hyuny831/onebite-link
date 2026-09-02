@@ -9,7 +9,7 @@ type NewFolderModalProps = {
 };
 
 export default function NewFolderModal({ open, onClose }: NewFolderModalProps) {
-  const { addFolder } = useFolders();
+  const { addFolder, isAddingFolder } = useFolders();
   const [name, setName] = useState("");
 
   useEffect(() => {
@@ -34,13 +34,17 @@ export default function NewFolderModal({ open, onClose }: NewFolderModalProps) {
     onClose();
   };
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+
+    if (isAddingFolder) return;
 
     const trimmed = name.trim();
     if (!trimmed) return;
 
-    addFolder(trimmed);
+    const newFolder = await addFolder(trimmed);
+    if (!newFolder) return;
+
     setName("");
     onClose();
   };
@@ -94,9 +98,10 @@ export default function NewFolderModal({ open, onClose }: NewFolderModalProps) {
             </button>
             <button
               type="submit"
-              className="rounded-full bg-zinc-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-zinc-700 dark:bg-white dark:text-black dark:hover:bg-zinc-200"
+              disabled={isAddingFolder}
+              className="rounded-full bg-zinc-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-zinc-700 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-white dark:text-black dark:hover:bg-zinc-200"
             >
-              저장
+              {isAddingFolder ? "저장 중..." : "저장"}
             </button>
           </div>
         </form>

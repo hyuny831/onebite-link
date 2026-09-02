@@ -1,11 +1,22 @@
 "use client";
 
-import { createContext, useContext, useMemo, useState, type ReactNode } from "react";
-import { folders as initialFolders, type LinkFolder } from "./data";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
+import { createClient } from "@/utils/supabase/client";
+import type { LinkFolder } from "./data";
 
 type FolderContextValue = {
   folders: LinkFolder[];
-  addFolder: (name: string) => LinkFolder;
+  isAddingFolder: boolean;
+  addFolder: (name: string) => Promise<LinkFolder | null>;
   removeFolder: (id: string) => void;
   renameFolder: (id: string, name: string) => void;
 };
@@ -17,16 +28,53 @@ type FolderProviderProps = {
 };
 
 export function FolderProvider({ children }: FolderProviderProps) {
-  const [folders, setFolders] = useState<LinkFolder[]>(initialFolders);
+  const [folders, setFolders] = useState<LinkFolder[]>([]);
+  const [isAddingFolder, setIsAddingFolder] = useState(false);
+  const isAddingRef = useRef(false);
 
-  const addFolder = (name: string) => {
-    const newFolder: LinkFolder = {
-      id: `folder-${Date.now()}`,
-      name,
-    };
-    setFolders((prev) => [...prev, newFolder]);
-    return newFolder;
-  };
+  useEffect(() => {
+    const supabase = createClient();
+
+    supabase
+      .from("folders")
+      .select("id, name")
+      .order("id", { ascending: true })
+      .then(({ data, error }) => {
+        if (error) {
+          console.error("폴더 목록을 불러오지 못했습니다:", error.message);
+          return;
+        }
+
+        setFolders((data ?? []).map((row) => ({ id: String(row.id), name: row.name })));
+      });
+  }, []);
+
+  const addFolder = useCallback(async (name: string) => {
+    if (isAddingRef.current) return null;
+    isAddingRef.current = true;
+    setIsAddingFolder(true);
+
+    try {
+      const supabase = createClient();
+      const { data, error } = await supabase
+        .from("folders")
+        .insert({ name })
+        .select("id, name")
+        .single();
+
+      if (error || !data) {
+        console.error("폴더를 추가하지 못했습니다:", error?.message);
+        return null;
+      }
+
+      const newFolder: LinkFolder = { id: String(data.id), name: data.name };
+      setFolders((prev) => [...prev, newFolder]);
+      return newFolder;
+    } finally {
+      isAddingRef.current = false;
+      setIsAddingFolder(false);
+    }
+  }, []);
 
   const removeFolder = (id: string) => {
     setFolders((prev) => prev.filter((folder) => folder.id !== id));
@@ -39,8 +87,8 @@ export function FolderProvider({ children }: FolderProviderProps) {
   };
 
   const value = useMemo(
-    () => ({ folders, addFolder, removeFolder, renameFolder }),
-    [folders],
+    () => ({ folders, isAddingFolder, addFolder, removeFolder, renameFolder }),
+    [folders, isAddingFolder, addFolder],
   );
 
   return <FolderContext.Provider value={value}>{children}</FolderContext.Provider>;
