@@ -21,14 +21,14 @@ export default function Sidebar({ folders, linkCountByFolder, totalLinkCount }: 
   const [folderToDelete, setFolderToDelete] = useState<LinkFolder | null>(null);
   const [folderToEdit, setFolderToEdit] = useState<LinkFolder | null>(null);
 
-  const handleConfirmDelete = () => {
+  const handleConfirmDelete = async () => {
     if (!folderToDelete) return;
 
     const isViewingDeletedFolder = pathname === `/folder/${folderToDelete.id}`;
-    removeFolder(folderToDelete.id);
+    const success = await removeFolder(folderToDelete.id);
     setFolderToDelete(null);
 
-    if (isViewingDeletedFolder) {
+    if (success && isViewingDeletedFolder) {
       router.push("/");
     }
   };
