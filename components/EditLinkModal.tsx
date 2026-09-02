@@ -44,17 +44,19 @@ function EditLinkModalContent({ link, onClose }: EditLinkModalContentProps) {
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, [onClose]);
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
     const trimmedTitle = title.trim();
     if (!trimmedTitle) return;
 
-    updateLink(link.id, {
+    const success = await updateLink(link.id, {
       folderId,
       title: trimmedTitle,
       description: description.trim(),
     });
+    if (!success) return;
+
     onClose();
   };
 

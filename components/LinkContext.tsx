@@ -32,7 +32,7 @@ type LinkContextValue = {
   isAddingLink: boolean;
   addLink: (input: NewLinkInput) => Promise<LinkItem | null>;
   removeLink: (id: string) => void;
-  updateLink: (id: string, input: LinkUpdateInput) => void;
+  updateLink: (id: string, input: LinkUpdateInput) => Promise<boolean>;
 };
 
 const LinkContext = createContext<LinkContextValue | null>(null);
@@ -122,7 +122,22 @@ export function LinkProvider({ children }: LinkProviderProps) {
     setLinks((prev) => prev.filter((link) => link.id !== id));
   };
 
-  const updateLink = (id: string, input: LinkUpdateInput) => {
+  const updateLink = useCallback(async (id: string, input: LinkUpdateInput) => {
+    const supabase = createClient();
+    const { error } = await supabase
+      .from("links")
+      .update({
+        folder_id: input.folderId ? Number(input.folderId) : null,
+        title: input.title,
+        description: input.description,
+      })
+      .eq("id", id);
+
+    if (error) {
+      console.error("링크를 수정하지 못했습니다:", error.message);
+      return false;
+    }
+
     setLinks((prev) =>
       prev.map((link) =>
         link.id === id
@@ -135,11 +150,12 @@ export function LinkProvider({ children }: LinkProviderProps) {
           : link,
       ),
     );
-  };
+    return true;
+  }, []);
 
   const value = useMemo(
     () => ({ links, isAddingLink, addLink, removeLink, updateLink }),
-    [links, isAddingLink, addLink],
+    [links, isAddingLink, addLink, updateLink],
   );
 
   return <LinkContext.Provider value={value}>{children}</LinkContext.Provider>;
