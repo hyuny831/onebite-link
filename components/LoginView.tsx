@@ -103,7 +103,16 @@ export default function LoginView() {
           </button>
         </form>
 
-        <p className="mt-6 text-center text-sm text-zinc-500 dark:text-zinc-400">
+        <p className="mt-4 text-center text-sm text-zinc-500 dark:text-zinc-400">
+          <Link
+            href="/forgot-password"
+            className="font-medium text-zinc-900 hover:underline dark:text-zinc-50"
+          >
+            비밀번호를 잊으셨나요?
+          </Link>
+        </p>
+
+        <p className="mt-2 text-center text-sm text-zinc-500 dark:text-zinc-400">
           계정이 없으신가요?{" "}
           <Link
             href="/signup"
