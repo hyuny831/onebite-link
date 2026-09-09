@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/utils/supabase/client";
@@ -22,6 +23,7 @@ export default function LoginView() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isKakaoSubmitting, setIsKakaoSubmitting] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   const isFormFilled = email !== "" && password !== "";
@@ -46,6 +48,31 @@ export default function LoginView() {
       setToastMessage("로그인에 실패했어요. 잠시 후 다시 시도해주세요.");
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleKakaoLogin = async () => {
+    if (isKakaoSubmitting) return;
+
+    setIsKakaoSubmitting(true);
+
+    try {
+      const supabase = createClient();
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: "kakao",
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`,
+        },
+      });
+
+      if (error) {
+        setToastMessage("카카오 로그인에 실패했어요. 잠시 후 다시 시도해주세요.");
+        setIsKakaoSubmitting(false);
+      }
+      // 성공 시 카카오 인증 페이지로 리다이렉트되므로 별도 처리가 필요 없다.
+    } catch {
+      setToastMessage("카카오 로그인에 실패했어요. 잠시 후 다시 시도해주세요.");
+      setIsKakaoSubmitting(false);
     }
   };
 
@@ -102,6 +129,23 @@ export default function LoginView() {
             {isSubmitting ? "로그인하는 중..." : "로그인"}
           </button>
         </form>
+
+        <button
+          type="button"
+          onClick={handleKakaoLogin}
+          disabled={isKakaoSubmitting}
+          aria-label="카카오로 로그인"
+          className="mt-2 flex w-full items-center justify-center transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          <Image
+            src="/kakao_login_large_wide.png"
+            alt="카카오 로그인"
+            width={600}
+            height={90}
+            className="h-auto w-full"
+            priority
+          />
+        </button>
 
         <p className="mt-4 text-center text-sm text-zinc-500 dark:text-zinc-400">
           <Link
