@@ -70,19 +70,40 @@ export function LinkProvider({ children }: LinkProviderProps) {
 
   useEffect(() => {
     const supabase = createClient();
+    let currentUserId: string | null = null;
 
-    supabase
-      .from("links")
-      .select("id, url, title, description, thumbnail_url, created_at, folder_id")
-      .order("id", { ascending: false })
-      .then(({ data, error }) => {
-        if (error) {
-          console.error("링크 목록을 불러오지 못했습니다:", error.message);
-          return;
-        }
+    const fetchLinks = async (userId: string | null) => {
+      if (!userId) {
+        setLinks([]);
+        return;
+      }
 
-        setLinks((data ?? []).map(toLinkItem));
-      });
+      const { data, error } = await supabase
+        .from("links")
+        .select("id, url, title, description, thumbnail_url, created_at, folder_id")
+        .eq("user_id", userId)
+        .order("id", { ascending: false });
+
+      if (error) {
+        console.error("링크 목록을 불러오지 못했습니다:", error.message);
+        return;
+      }
+
+      setLinks((data ?? []).map(toLinkItem));
+    };
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      const userId = session?.user?.id ?? null;
+      if (userId === currentUserId) return;
+
+      currentUserId = userId;
+      setLinks([]); // 계정이 바뀌면 기존 데이터를 비우고 처음부터 다시 불러온다
+      fetchLinks(userId);
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
   const addLink = useCallback(async (input: NewLinkInput) => {

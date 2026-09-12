@@ -34,19 +34,40 @@ export function FolderProvider({ children }: FolderProviderProps) {
 
   useEffect(() => {
     const supabase = createClient();
+    let currentUserId: string | null = null;
 
-    supabase
-      .from("folders")
-      .select("id, name")
-      .order("id", { ascending: true })
-      .then(({ data, error }) => {
-        if (error) {
-          console.error("폴더 목록을 불러오지 못했습니다:", error.message);
-          return;
-        }
+    const fetchFolders = async (userId: string | null) => {
+      if (!userId) {
+        setFolders([]);
+        return;
+      }
 
-        setFolders((data ?? []).map((row) => ({ id: String(row.id), name: row.name })));
-      });
+      const { data, error } = await supabase
+        .from("folders")
+        .select("id, name")
+        .eq("user_id", userId)
+        .order("id", { ascending: true });
+
+      if (error) {
+        console.error("폴더 목록을 불러오지 못했습니다:", error.message);
+        return;
+      }
+
+      setFolders((data ?? []).map((row) => ({ id: String(row.id), name: row.name })));
+    };
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      const userId = session?.user?.id ?? null;
+      if (userId === currentUserId) return;
+
+      currentUserId = userId;
+      setFolders([]); // 계정이 바뀌면 기존 데이터를 비우고 처음부터 다시 불러온다
+      fetchFolders(userId);
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
   const addFolder = useCallback(async (name: string) => {
