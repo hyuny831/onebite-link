@@ -138,6 +138,12 @@ export default function SignupView() {
             로그인
           </Link>
         </p>
+
+        <p className="mt-2 text-center text-xs text-zinc-400 dark:text-zinc-600">
+          <Link href="/privacy-policy" className="hover:underline">
+            개인정보 처리방침
+          </Link>
+        </p>
       </div>
     </div>
   );
